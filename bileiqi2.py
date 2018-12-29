@@ -2,6 +2,7 @@ import cv2
 from Common import AngleFactory,meterFinderByTemplate
 from num_reading import get_value
 import math
+import numpy as np
 def bileiqi2(image, info):
     """
     :param image:whole image
@@ -15,13 +16,13 @@ def bileiqi2(image, info):
     meter = meterFinderByTemplate(image, info["template"])
     n_value,p_value=bileiqi_pointer_num_reading(meter,info["totalValue"],info["numSize"])
     return p_value,n_value
-def __CalculateLineAngle(p1, p2):
+def CalculateLineAngle(p1, p2):
 	xDis = p2[0] - p1[0]
 	yDis = p2[1] - p1[1]
 	angle = math.atan2(yDis, xDis)
 	angle = angle / math.pi *180
 	return angle;
-def __rotateImage(img,degree,pt1,pt2,pt3,pt4):
+def rotateImage(img,degree,pt1,pt2,pt3,pt4):
     height,width=img.shape[:2]
     heightNew = int(width * math.fabs(math.sin(degree)) + height * math.fabs(math.cos(degree)))
     widthNew = int(height * math.fabs(math.sin(degree)) + width * math.fabs(math.cos(degree)))
@@ -45,8 +46,8 @@ def get_num_area(image,box):
     pt2=box[1]
     pt3=box[2]
     pt4=box[3]
-    angle=__CalculateLineAngle(pt1,pt4)
-    imgRotation=__rotateImage(imgResize,angle,pt1,pt2,pt3,pt4)
+    angle=CalculateLineAngle(pt1,pt4)
+    imgRotation=rotateImage(imgResize,angle,pt1,pt2,pt3,pt4)
     return imgRotation
 def bileiqi_pointer_num_reading(image,totalValue,num):
     #pointer value reading & number reading
@@ -79,7 +80,7 @@ def bileiqi_pointer_num_reading(image,totalValue,num):
             if p[0][1] > maxY:
                 maxY = p[0][1]
                 startPoint = p[0]
-    print("startPoint:",startPoint)
+    #print("startPoint:",startPoint)
 
     #red end line
     lowerRed = np.array([156, 43, 46], dtype="uint8")
@@ -104,7 +105,7 @@ def bileiqi_pointer_num_reading(image,totalValue,num):
             if p[0][1] > maxY:
                 maxY = p[0][1]
                 endPoint = p[0]
-    print("endPoint:",endPoint)
+    #print("endPoint:",endPoint)
 
     #black pointer line & number area
     lowerBlack=np.array([0,0,0],dtype="uint8")
@@ -117,6 +118,7 @@ def bileiqi_pointer_num_reading(image,totalValue,num):
     _, blackContours, blackHierarchy = cv2.findContours(blackMask1, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     blackContours = sorted(blackContours, key=lambda c: c.shape[0], reverse=True)
     blackContours = [c for c in blackContours if len(c) > 10 ]
+    box=[]
     for c in blackContours:
         rect = cv2.minAreaRect(c)
         box = cv2.boxPoints(rect)
@@ -137,15 +139,11 @@ def bileiqi_pointer_num_reading(image,totalValue,num):
                 maxY = p[0][1]
                 pointerPoint = p[0]
 
-    print("pointerPoint:",pointerPoint)
+    #print("pointerPoint:",pointerPoint)
     centerPoint=[R,R]
-    print("center_point:",centerPoint)
-    angleRange=AngleFactory.__calAngleBetweenTwoVector(startPoint-centerPoint,endPoint-centerPoint)
-    angle = AngleFactory.__calAngleBetweenTwoVector(startPoint - centerPoint, pointerPoint - centerPoint)
-
-    value = angle / angleRange * totalValue + 0.0
-    print("p_value",value)
-
+    #print("center_point:",centerPoint)
+    value=AngleFactory.calPointerValueByOuterPoint(startPoint,endPoint,centerPoint,pointerPoint,0,totalValue)
+    #print("p_value",value)
     num_img = get_num_area(image, box)
     results = get_value(num_img, num)
     return value,results
