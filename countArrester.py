@@ -75,3 +75,4 @@ def calAngleBetweenTwoVector(vectorA, vectorB):
 #     image=cv2.imread("image/myx1.jpg")
 #     value=countArrester(image, info)
 #     print(value)
+#     print(value)
