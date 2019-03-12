@@ -1,6 +1,10 @@
 # pycharm
 .idea/
+storeDigitData/
+.DS_Store
 test.py
+algorithm/OCR/newNet/images/
+testImages
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -106,6 +110,3 @@ venv.bak/
 
 # mypy
 .mypy_cache/
-util/.*
-normalPressure_debug.py
-output/.*
